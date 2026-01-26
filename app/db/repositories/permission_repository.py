@@ -11,7 +11,7 @@ class PermissionRepository(BaseRepository[PermissionOrm]):
         async with self as repo:
             permission = PermissionOrm(**obj_in)
             self._session.add(permission)
-            await self._session.flush()
+            await self._session.commit()
             await self._session.refresh(permission)
             return permission
 
@@ -31,7 +31,7 @@ class PermissionRepository(BaseRepository[PermissionOrm]):
             if permission:
                 for key, value in updated_obj.items():
                     setattr(permission, key, value)
-                await self._session.flush()
+                await self._session.commit()
                 await self._session.refresh(permission)
                 return permission
             return None
@@ -41,6 +41,6 @@ class PermissionRepository(BaseRepository[PermissionOrm]):
             permission = await self.read_by_id(entity_id)
             if permission:
                 await self._session.delete(permission)
-                await self._session.flush()
+                await self._session.commit()
                 return True
             return False

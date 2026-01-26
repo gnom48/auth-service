@@ -11,7 +11,7 @@ class RoleRepository(BaseRepository[RoleOrm]):
         async with self as repo:
             role = RoleOrm(**obj_in)
             self._session.add(role)
-            await self._session.flush()
+            await self._session.commit()
             await self._session.refresh(role)
             return role
 
@@ -31,7 +31,7 @@ class RoleRepository(BaseRepository[RoleOrm]):
             if role:
                 for key, value in updated_obj.items():
                     setattr(role, key, value)
-                await self._session.flush()
+                await self._session.commit()
                 await self._session.refresh(role)
                 return role
             return None
@@ -41,6 +41,6 @@ class RoleRepository(BaseRepository[RoleOrm]):
             role = await self.read_by_id(entity_id)
             if role:
                 await self._session.delete(role)
-                await self._session.flush()
+                await self._session.commit()
                 return True
             return False

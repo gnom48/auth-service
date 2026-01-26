@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field, EmailStr
 
 
 class User(BaseModel):
-    id: int
+    id: str
     first_name: str
     last_name: str
     middle_name: Optional[str]
@@ -33,22 +33,9 @@ class RoleCreate(BaseModel):
     description: Optional[str]
 
 
-class RoleUpdate(RoleCreate):
-    pass
-
-
 class PermissionCreate(BaseModel):
     code: str
     name: Optional[str]
-
-
-class PermissionUpdate(PermissionCreate):
-    pass
-
-
-class TokenData(BaseModel):
-    email: Optional[str] = None
-    scopes: List[str] = []
 
 
 class Token(BaseModel):

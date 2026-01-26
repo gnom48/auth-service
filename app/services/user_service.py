@@ -9,15 +9,21 @@ class UserService:
     def __init__(self, user_repo: UserRepository):
         self.repo = user_repo
 
-    async def create_user(self, user_in: UserCreate) -> Optional[UserCreate]:
+    async def create_user(self, user_in: UserCreate) -> Optional[User]:
         hashed_password = pwd_context.hash(user_in.password)
         user_dict = user_in.dict()
         user_dict["hashed_password"] = hashed_password
         del user_dict['password']
-        return await self.repo.create(user_dict)
+        return User.model_validate(await self.repo.create(user_dict))
 
     async def get_user_by_email(self, email: str) -> Optional[User]:
         user = await self.repo.read_by_email(email)
+        if not user:
+            raise AuthException()
+        return User.model_validate(user)
+
+    async def get_user_by_id(self, id: int) -> Optional[User]:
+        user = await self.repo.read_by_id(id)
         if not user:
             raise AuthException()
         return User.model_validate(user)
@@ -39,5 +45,5 @@ class UserService:
     async def update_user(self, user_id: int, user_update: UserUpdate) -> Optional[UserUpdate]:
         return await self.repo.update(user_id, user_update.dict())
 
-    async def delete_user(self, user_id: int) -> bool:
-        return await self.repo.delete(user_id)
+    async def soft_delete_user(self, user_id: int) -> bool:
+        return await self.repo.soft_delete(user_id)

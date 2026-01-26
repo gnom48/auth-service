@@ -11,7 +11,7 @@ class SessionRepository(BaseRepository[SessionRecordOrm]):
         async with self as repo:
             session_record = SessionRecordOrm(**obj_in)
             self._session.add(session_record)
-            await self._session.flush()
+            await self._session.commit()
             await self._session.refresh(session_record)
             return session_record
 
@@ -25,7 +25,7 @@ class SessionRepository(BaseRepository[SessionRecordOrm]):
             session_record = await self.get_session_by_refresh_token(refresh_token)
             if session_record:
                 await self._session.delete(session_record)
-                await self._session.flush()
+                await self._session.commit()
                 return True
             return False
 

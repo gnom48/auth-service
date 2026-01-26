@@ -1,7 +1,8 @@
-from datetime import datetime
-from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey, Table, BigInteger, UniqueConstraint
+from sqlalchemy import BigInteger, Column, Integer, String, Boolean, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import time
+from app.models.pydantic import User
+import uuid
 
 
 class BaseModelOrm(DeclarativeBase):
@@ -16,83 +17,96 @@ class BaseModelOrm(DeclarativeBase):
     when_update: Mapped[int] = mapped_column(BigInteger, default=lambda: int(
         time.time()), onupdate=lambda: int(time.time()))
 
-
-user_roles_association = Table(
-    'user_roles',
-    BaseModelOrm.metadata,
-    Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
-    Column('role_id', Integer, ForeignKey('roles.id'), primary_key=True),
-    UniqueConstraint('user_id', 'role_id')
-)
-
-role_permissions_association = Table(
-    'role_permissions',
-    BaseModelOrm.metadata,
-    Column('role_id', Integer, ForeignKey('roles.id'), primary_key=True),
-    Column('perm_id', Integer, ForeignKey('permissions.id'), primary_key=True),
-    UniqueConstraint('role_id', 'perm_id')
-)
-
-user_permissions_association = Table(
-    'user_permissions',
-    BaseModelOrm.metadata,
-    Column('user_id', Integer, ForeignKey('users.id'), primary_key=True),
-    Column('perm_id', Integer, ForeignKey('permissions.id'), primary_key=True),
-    UniqueConstraint('user_id', 'perm_id')
-)
+    def complete_user_fields(self, user: User):
+        self.when_create = user.id
+        self.when_update = user.id
 
 
 class UserOrm(BaseModelOrm):
     __tablename__ = 'users'
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(36), primary_key=True, index=True,
+                default=lambda: str(uuid.uuid4()))
     first_name = Column(String(50))
     last_name = Column(String(50))
     middle_name = Column(String(50))
     email = Column(String(100), unique=True, nullable=False)
     hashed_password = Column(String(100))
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, onupdate=datetime.utcnow)
-    is_active = Column(Boolean, default=True)
 
-    roles = relationship(
-        "Role", secondary=user_roles_association, back_populates="users")
-    direct_permissions = relationship(
-        "Permission", secondary=user_permissions_association, back_populates="direct_users")
+    roles = relationship("UserRole", back_populates="user")
+    direct_permissions = relationship("UserPermission", back_populates="user")
 
 
 class RoleOrm(BaseModelOrm):
     __tablename__ = 'roles'
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement="auto")
     title = Column(String(50), unique=True, nullable=False)
     description = Column(String(255))
 
-    permissions = relationship(
-        "Permission", secondary=role_permissions_association, back_populates="roles")
-    users = relationship(
-        "User", secondary=user_roles_association, back_populates="roles")
+    users = relationship("UserRole", back_populates="role")
+    permissions = relationship("RolePermission", back_populates="role")
 
 
 class PermissionOrm(BaseModelOrm):
     __tablename__ = 'permissions'
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement="auto")
     code = Column(String(50), unique=True, nullable=False)
     name = Column(String(100))
 
-    roles = relationship(
-        "Role", secondary=role_permissions_association, back_populates="permissions")
-    direct_users = relationship(
-        "User", secondary=user_permissions_association, back_populates="direct_permissions")
+    roles = relationship("RolePermission", back_populates="permission")
+    direct_users = relationship("UserPermission", back_populates="permission")
+
+
+class UserRole(BaseModelOrm):
+    __tablename__ = 'user_roles'
+
+    user_id = Column(String(36), ForeignKey('users.id'), primary_key=True)
+    role_id = Column(Integer, ForeignKey('roles.id'), primary_key=True)
+
+    user = relationship("UserOrm", back_populates="roles")
+    role = relationship("RoleOrm", back_populates="users")
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'role_id'),
+    )
+
+
+class RolePermission(BaseModelOrm):
+    __tablename__ = 'role_permissions'
+
+    role_id = Column(Integer, ForeignKey('roles.id'), primary_key=True)
+    perm_id = Column(Integer, ForeignKey('permissions.id'), primary_key=True)
+
+    role = relationship("RoleOrm", back_populates="permissions")
+    permission = relationship("PermissionOrm", back_populates="roles")
+
+    __table_args__ = (
+        UniqueConstraint('role_id', 'perm_id'),
+    )
+
+
+class UserPermission(BaseModelOrm):
+    __tablename__ = 'user_permissions'
+
+    user_id = Column(String(36), ForeignKey('users.id'), primary_key=True)
+    perm_id = Column(Integer, ForeignKey('permissions.id'), primary_key=True)
+
+    user = relationship("UserOrm", back_populates="direct_permissions")
+    permission = relationship("PermissionOrm", back_populates="direct_users")
+
+    __table_args__ = (
+        UniqueConstraint('user_id', 'perm_id'),
+    )
 
 
 class SessionRecordOrm(BaseModelOrm):
     __tablename__ = "sessions"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
+    id = Column(Integer, primary_key=True, index=True, autoincrement="auto")
+    user_id = Column(String(36), ForeignKey("users.id"))
     refresh_token = Column(String, unique=True, index=True)
-    expires_at = Column(DateTime)
+    expires_at = Column(int)
 
-    user = relationship("User", backref="sessions")
+    user = relationship("UserOrm", backref="sessions")

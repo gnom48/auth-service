@@ -13,7 +13,7 @@ async def register_user(
     user: UserCreate,
     service: UserService = Depends(lambda: di_container.user_service())
 ):
-    return await service.register_user(user)
+    return await service.create_user(user)
 
 
 @users_router.get("/{user_id}", summary="Получение информации о пользователе")

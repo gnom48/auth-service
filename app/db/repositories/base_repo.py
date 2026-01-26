@@ -1,11 +1,11 @@
 import logging
 from abc import ABCMeta
 from typing import Generic, TypeVar, Any, Optional
+from sqlalchemy import update
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 import logging
-from dependency_injector.providers import Factory
-
 from app.models.sqlalchemy import BaseModelOrm
+from app.models.pydantic import User
 
 
 T = TypeVar('T', bound=BaseModelOrm)
@@ -43,7 +43,7 @@ class BaseRepository(Generic[T], metaclass=ABCMeta):
             f"Method create not implementer for model <{self.model_class.__name__}>")
         return None
 
-    async def read_by_id(self, entity_id: int) -> Optional[T]:
+    async def read_by_id(self, entity_id: int | str) -> Optional[T]:
         logging.error(
             f"Method read_by_id not implementer for model <{self.model_class.__name__}>")
         return None
@@ -53,12 +53,21 @@ class BaseRepository(Generic[T], metaclass=ABCMeta):
             f"Method read_all not implementer for model <{self.model_class.__name__}>")
         return None
 
-    async def update(self, entity_id: int, updated_obj: dict) -> Optional[T]:
+    async def update(self, entity_id: int | str, updated_obj: dict) -> Optional[T]:
         logging.error(
             f"Method update not implementer for model <{self.model_class.__name__}>")
         return None
 
-    async def delete(self, entity_id: int) -> bool:
+    async def delete(self, entity_id: int | str) -> bool:
         logging.error(
             f"Method delete not implementer for model <{self.model_class.__name__}>")
         return False
+
+    async def soft_delete(self, entity_id: int | str) -> bool:
+        async with self as repo:
+            entity = await self.read_by_id(entity_id)
+            if entity:
+                await self._session.execute(update(self.model_class).where(self.model_class.id == entity_id).values(is_deleted=True))
+                await self._session.commit()
+                return True
+            return False

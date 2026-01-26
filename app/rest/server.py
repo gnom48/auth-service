@@ -4,7 +4,7 @@ import logging
 from typing import AsyncGenerator
 from fastapi import FastAPI
 from app.rest.routers import users_router, roles_router, healthcheck_router, permissions_router, auth_router
-from .middleware import jwt_middleware, error_middleware
+from .middleware import error_middleware
 from app.di import di_container
 
 

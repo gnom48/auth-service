@@ -47,7 +47,6 @@ async def refresh_tokens(
     refresh_token: Annotated[str, Body(description="Refresh token")],
     service: SessionsService = Depends(lambda: di_container.session_service())
 ):
-    refresh_token = refresh_token.refresh_token
     tokens = await service.refresh_tokens(refresh_token)
     if tokens is None:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
@@ -59,7 +58,6 @@ async def logout(
     refresh_token: Annotated[str, Body(description="Refresh token")],
     service: SessionsService = Depends(lambda: di_container.session_service())
 ):
-    refresh_token = refresh_token.refresh_token
     success = await service.revoke_session(refresh_token)
     if not success:
         raise HTTPException(status_code=401, detail="Invalid refresh token")

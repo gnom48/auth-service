@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.di import di_container
 from app.services.permission_service import PermissionService
-from app.models.pydantic import PermissionCreate, PermissionUpdate, User
+from app.models.pydantic import PermissionCreate, User
 from ..middleware import verify_jwt
 
 
@@ -29,20 +29,6 @@ async def get_permission(
     if not permission:
         raise HTTPException(status_code=404, detail="Разрешение не найдено")
     return permission
-
-
-@permissions_router.put("/{permission_id}", summary="Обновление информации о разрешении")
-async def update_permission(
-    permission_id: int,
-    permission_update: PermissionUpdate,
-        user: User = Depends(verify_jwt),
-    service: PermissionService = Depends(
-        lambda: di_container.permission_service())
-):
-    updated_permission = await service.update_permission(permission_id, permission_update)
-    if not updated_permission:
-        raise HTTPException(status_code=404, detail="Разрешение не найдено")
-    return updated_permission
 
 
 @permissions_router.delete("/{permission_id}", summary="Удаление разрешения")

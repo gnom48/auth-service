@@ -1,9 +1,13 @@
 from typing import Optional, List
 from datetime import datetime
-from pydantic import BaseModel, Field, EmailStr
+from pydantic import BaseModel, Field, EmailStr, ConfigDict
 
 
-class User(BaseModel):
+class PydanticBase(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+
+class User(PydanticBase):
     id: str
     first_name: str
     last_name: str
@@ -11,7 +15,7 @@ class User(BaseModel):
     email: EmailStr
 
 
-class UserCreate(BaseModel):
+class UserCreate(PydanticBase):
     first_name: str
     last_name: str
     middle_name: Optional[str]
@@ -20,7 +24,7 @@ class UserCreate(BaseModel):
     confirm_password: str
 
 
-class UserUpdate(BaseModel):
+class UserUpdate(PydanticBase):
     first_name: Optional[str]
     last_name: Optional[str]
     middle_name: Optional[str]
@@ -28,21 +32,26 @@ class UserUpdate(BaseModel):
     current_password: Optional[str]
 
 
-class RoleCreate(BaseModel):
+class RoleCreate(PydanticBase):
     title: str
     description: Optional[str]
 
 
-class PermissionCreate(BaseModel):
+class PermissionCreate(PydanticBase):
     code: str
     name: Optional[str]
 
 
-class Token(BaseModel):
+class Token(PydanticBase):
     access_token: str
+    refresh_token: str
     token_type: str
 
 
-class SignInClaims(BaseModel):
+class OneToken(PydanticBase):
+    token: str
+
+
+class SignInClaims(PydanticBase):
     email: str
     password: str

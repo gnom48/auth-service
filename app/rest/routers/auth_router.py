@@ -1,7 +1,7 @@
 from datetime import timedelta
 from typing import Annotated
 from fastapi import APIRouter, Body, Depends, HTTPException
-from app.models.pydantic import SignInClaims, Token
+from app.models.pydantic import SignInClaims, Token, OneToken
 from app.di import di_container
 from app.services import SessionsService, UserService
 from app.configs import AuthConfig
@@ -35,19 +35,15 @@ async def login_and_get_tokens(
 
     await sessions_service.create_session(user.id, refresh_token)
 
-    return {
-        "access_token": access_token,
-        "refresh_token": refresh_token,
-        "token_type": "bearer"
-    }
+    return Token(access_token=access_token, refresh_token=refresh_token, token_type="bearer")
 
 
 @auth_router.post("/refresh", response_model=Token)
 async def refresh_tokens(
-    refresh_token: Annotated[str, Body(description="Refresh token")],
+    refresh_token: Annotated[OneToken, Body(description="Refresh token")],
     service: SessionsService = Depends(lambda: di_container.session_service())
 ):
-    tokens = await service.refresh_tokens(refresh_token)
+    tokens = await service.refresh_tokens(refresh_token.token)
     if tokens is None:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
     return tokens
@@ -55,10 +51,10 @@ async def refresh_tokens(
 
 @auth_router.post("/sign_out")
 async def logout(
-    refresh_token: Annotated[str, Body(description="Refresh token")],
+    refresh_token: Annotated[OneToken, Body(description="Refresh token")],
     service: SessionsService = Depends(lambda: di_container.session_service())
 ):
-    success = await service.revoke_session(refresh_token)
+    success = await service.revoke_session(refresh_token.token)
     if not success:
         raise HTTPException(status_code=401, detail="Invalid refresh token")
     return {"detail": "Logged out successfully"}

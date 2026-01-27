@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.di import di_container
 from app.rest.middleware import verify_jwt
 from app.services.role_service import RoleService
-from app.models.pydantic import RoleCreate, RoleUpdate, User
+from app.models.pydantic import RoleCreate, User
 from ..middleware import verify_jwt
 
 roles_router = APIRouter(prefix="/roles", tags=["Roles"])
@@ -27,19 +27,6 @@ async def get_role(
     if not role:
         raise HTTPException(status_code=404, detail="Роль не найдена")
     return role
-
-
-@roles_router.put("/{role_id}", summary="Обновление информации о роли")
-async def update_role(
-    role_id: int,
-    role_update: RoleUpdate,
-        user: User = Depends(verify_jwt),
-    service: RoleService = Depends(lambda: di_container.role_service())
-):
-    updated_role = await service.update_role(role_id, role_update)
-    if not updated_role:
-        raise HTTPException(status_code=404, detail="Роль не найдена")
-    return updated_role
 
 
 @roles_router.delete("/{role_id}", summary="Удаление роли")

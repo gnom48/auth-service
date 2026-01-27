@@ -1,9 +1,10 @@
-from datetime import timedelta, datetime
+from datetime import timedelta
 from typing import Optional
 from jose import jwt, exceptions as jwt_exceptions
 from app.configs import AuthConfig
 from app.db import SessionRepository, UserRepository
 from app.models.pydantic import User
+import time
 
 
 class SessionsService:
@@ -14,10 +15,11 @@ class SessionsService:
 
     def generate_access_token(self, data: dict, expires_delta: Optional[timedelta] = None):
         to_encode = data.copy()
+        now = int(time.time())
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = now + int(expires_delta.total_seconds())
         else:
-            expire = datetime.utcnow() + timedelta(minutes=self.config.ACCESS_TOKEN_EXPIRE_MINUTES)
+            expire = now + self.config.ACCESS_TOKEN_EXPIRE_MINUTES * 60
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(
             to_encode, self.config.SECRET_KEY, algorithm=self.config.ALGORITHM)
@@ -25,10 +27,11 @@ class SessionsService:
 
     def generate_refresh_token(self, data: dict, expires_delta: Optional[timedelta] = None):
         to_encode = data.copy()
+        now = int(time.time())
         if expires_delta:
-            expire = datetime.utcnow() + expires_delta
+            expire = now + int(expires_delta.total_seconds())
         else:
-            expire = datetime.utcnow() + timedelta(days=self.config.REFRESH_TOKEN_EXPIRE_DAYS)
+            expire = now + self.config.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60
         to_encode.update({"exp": expire})
         encoded_jwt = jwt.encode(
             to_encode, self.config.SECRET_KEY, algorithm=self.config.ALGORITHM)
@@ -38,7 +41,7 @@ class SessionsService:
         session_data = {
             "user_id": user_id,
             "refresh_token": refresh_token,
-            "expires_at": datetime.utcnow() + timedelta(days=self.config.REFRESH_TOKEN_EXPIRE_DAYS),
+            "expires_at": int(time.time()) + self.config.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 60 * 60,
         }
         await self.session_repo.create_session(session_data)
 

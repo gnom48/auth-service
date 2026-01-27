@@ -18,8 +18,8 @@ async def register_user(
 
 @users_router.get("/{user_id}", summary="Получение информации о пользователе")
 async def get_user(
-    target_user_id: int,
-        user: User = Depends(verify_jwt),
+    target_user_id: str,
+    user: User = Depends(verify_jwt),
     service: UserService = Depends(lambda: di_container.user_service())
 ):
     user = await service.get_user_by_id(target_user_id)
@@ -30,9 +30,9 @@ async def get_user(
 
 @users_router.put("/{user_id}", summary="Обновление информации о пользователе")
 async def update_user(
-    target_user_id: int,
+    target_user_id: str,
     user_update: UserUpdate,
-        user: User = Depends(verify_jwt),
+    user: User = Depends(verify_jwt),
     service: UserService = Depends(lambda: di_container.user_service())
 ):
     updated_user = await service.update_user(target_user_id, user_update)
@@ -43,8 +43,8 @@ async def update_user(
 
 @users_router.delete("/{user_id}", summary="Удаление пользователя (логическое)")
 async def delete_user(
-    target_user_id: int,
-        user: User = Depends(verify_jwt),
+    target_user_id: str,
+    user: User = Depends(verify_jwt),
     service: UserService = Depends(lambda: di_container.user_service())
 ):
     deleted = await service.soft_delete_user(target_user_id)

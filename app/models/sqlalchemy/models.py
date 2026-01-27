@@ -107,6 +107,6 @@ class SessionRecordOrm(BaseModelOrm):
     id = Column(Integer, primary_key=True, index=True, autoincrement="auto")
     user_id = Column(String(36), ForeignKey("users.id"))
     refresh_token = Column(String, unique=True, index=True)
-    expires_at = Column(int)
+    expires_at = Column(Integer)
 
     user = relationship("UserOrm", backref="sessions")

@@ -31,8 +31,58 @@ async def lifespan(
 
 asgi_application = FastAPI(
     lifespan=lifespan,
-    description="Auth service",
-    docs_url="/swagger"
+    title="Auth Service API",
+    version="1.0.0",
+    description="""
+## Описание сервиса аутентификации
+
+Данный сервис предоставляет функциональность для авторизации и аутентификации пользователей. Он построен на основе JSON Web Tokens (JWT) и предоставляет надёжные инструменты для безопасного доступа к ресурсам приложений.
+
+### Ключевые возможности:
+- Аутентификация пользователей через JWT.
+- Поддержка ролей и разрешений (RBAC).
+- Генерация и обновление токенов.
+- Эффективное управление сессиями.
+
+### Концепция работы:
+- Пользователи регистрируются и входят в систему, получая токены.
+- Каждый запрос сопровождается access-токеном, который проверяется сервером.
+- Для продления срока действия токенов предусмотрен refresh-токен.
+- Средства защиты включают ограничение числа попыток входа и отслеживание сессий.
+""",
+    contact={
+        "name": "Support Team",
+        "url": "https://gnom48.ru",
+        "email": "main@gnom48.ru"
+    },
+    license_info={
+        "name": "MIT License",
+        "url": "https://opensource.org/licenses/MIT"
+    },
+    openapi_tags=[
+        {
+            "name": "Authentication",
+            "description": "Методы для авторизации и аутентификации."
+        },
+        {
+            "name": "Users",
+            "description": "Методы для управления пользователями."
+        },
+        {
+            "name": "Roles & Permissions",
+            "description": "Методы для управления ролями и разрешениями."
+        },
+    ],
+    servers=[
+        {
+            "url": "https://auth.gnom48.ru",
+            "description": "Production server"
+        },
+        {
+            "url": "http://localhost:${PORT}",
+            "description": "Your local development server"
+        }
+    ]
 )
 
 asgi_application.middleware("http")(error_middleware)

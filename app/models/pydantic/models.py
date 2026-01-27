@@ -53,5 +53,5 @@ class OneToken(PydanticBase):
 
 
 class SignInClaims(PydanticBase):
-    email: str
+    email: EmailStr
     password: str

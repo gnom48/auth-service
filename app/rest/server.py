@@ -69,20 +69,29 @@ asgi_application = FastAPI(
             "description": "Методы для управления пользователями."
         },
         {
-            "name": "Roles & Permissions",
-            "description": "Методы для управления ролями и разрешениями."
+            "name": "Roles",
+            "description": "Методы для управления ролями."
+        },
+        {
+            "name": "Permissions",
+            "description": "Методы для управления разрешениями."
+        },
+        {
+            "name": "Healthcheck",
+            "description": "Служебные методы."
         },
     ],
     servers=[
         {
-            "url": "https://auth.gnom48.ru",
-            "description": "Production server"
+            "url": f"http://localhost:{di_container.server_config().SERVER_PORT}",
+            "description": "Your local development server"
         },
         {
-            "url": "http://localhost:${PORT}",
-            "description": "Your local development server"
+            "url": "https://auth.gnom48.ru",
+            "description": "Production server"
         }
-    ]
+    ],
+    docs_url="/swagger"
 )
 
 asgi_application.middleware("http")(error_middleware)

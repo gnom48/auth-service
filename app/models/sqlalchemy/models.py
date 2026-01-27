@@ -68,7 +68,7 @@ class UserRole(BaseModelOrm):
     user = relationship("UserOrm", back_populates="roles")
     role = relationship("RoleOrm", back_populates="users")
 
-    __table_args__ = (UniqueConstraint('user_id', 'role_id'))
+    __table_args__ = (UniqueConstraint('user_id', 'role_id'),)
 
 
 class RolePermission(BaseModelOrm):
@@ -80,7 +80,7 @@ class RolePermission(BaseModelOrm):
     role = relationship("RoleOrm", back_populates="permissions")
     permission = relationship("PermissionOrm", back_populates="roles")
 
-    __table_args__ = (UniqueConstraint('role_id', 'perm_id'))
+    __table_args__ = (UniqueConstraint('role_id', 'perm_id'),)
 
 
 class UserPermission(BaseModelOrm):
@@ -92,7 +92,7 @@ class UserPermission(BaseModelOrm):
     user = relationship("UserOrm", back_populates="direct_permissions")
     permission = relationship("PermissionOrm", back_populates="direct_users")
 
-    __table_args__ = (UniqueConstraint('user_id', 'perm_id'))
+    __table_args__ = (UniqueConstraint('user_id', 'perm_id'),)
 
 
 class SessionRecordOrm(BaseModelOrm):

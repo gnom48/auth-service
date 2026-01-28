@@ -22,10 +22,10 @@ async def get_user(
     user: User = Depends(verify_jwt),
     service: UserService = Depends(lambda: di_container.user_service())
 ):
-    user = await service.get_user_by_id(target_user_id)
-    if not user:
+    target_user = await service.get_user_by_id(target_user_id)
+    if not target_user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
-    return user
+    return target_user
 
 
 @users_router.put("/{user_id}", summary="Обновление информации о пользователе")

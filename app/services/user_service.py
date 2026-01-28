@@ -1,7 +1,7 @@
 from typing import Optional
 from app.db import UserRepository
 from app.models.exceptions import AuthException
-from app.models.pydantic import UserCreate, UserUpdate, User
+from app.models.pydantic import UserCreate, UserUpdate, User, RolePydantic, UserPermissionPydantic
 from .utils.bcrypt_methods import get_password_hash, verify_password
 
 
@@ -28,7 +28,11 @@ class UserService:
         user = await self.repo.read_by_id(id)
         if not user:
             raise AuthException()
-        return User.model_validate(user)
+        res = User.model_validate(user)
+        res.role = RolePydantic.model_validate(user.role)
+        res.permissions = [UserPermissionPydantic.model_validate(
+            i) for i in user.direct_permissions] or []
+        return res
 
     async def verify_user(self, email: str, plain_password: str) -> Optional[User]:
         """

@@ -3,7 +3,7 @@ from dependency_injector import providers
 from sqlalchemy.engine.url import URL
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
-from app.db import UserRepository, PermissionRepository, RoleRepository, SessionRepository
+from app.db import UserRepository, PermissionRepository, RoleRepository, SessionRepository, ResourceRepository
 from app.db import configure_db
 from app.services import UserService, PermissionService, RoleService, SessionsService
 from app.configs import *
@@ -55,10 +55,12 @@ class Container(DeclarativeContainer):
         PermissionRepository, session_factory=__session_factory)
     session_repository = providers.Factory(
         SessionRepository, session_factory=__session_factory)
+    resource_repository = providers.Factory(
+        ResourceRepository, session_factory=__session_factory)
 
     user_service = providers.Factory(UserService, user_repo=user_repository)
     role_service = providers.Factory(RoleService, role_repo=role_repository)
     permission_service = providers.Factory(
-        PermissionService, permission_repo=permission_repository)
+        PermissionService, permission_repo=permission_repository, resource_repo=resource_repository)
     session_service = providers.Factory(
         SessionsService, session_repo=session_repository, user_repo=user_repository, config=auth_config)

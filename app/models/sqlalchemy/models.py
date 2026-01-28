@@ -32,8 +32,9 @@ class UserOrm(BaseModelOrm):
     middle_name = Column(String(50))
     email = Column(String(100), unique=True, nullable=False)
     hashed_password = Column(String(100))
+    role_id = Column(Integer, ForeignKey('roles.id'))
 
-    roles = relationship("UserRole", back_populates="user")
+    role = relationship("RoleOrm", back_populates="users")
     direct_permissions = relationship("UserPermission", back_populates="user")
 
 
@@ -44,55 +45,37 @@ class RoleOrm(BaseModelOrm):
     title = Column(String(50), unique=True, nullable=False)
     description = Column(String(255))
 
-    users = relationship("UserRole", back_populates="role")
-    permissions = relationship("RolePermission", back_populates="role")
+    users = relationship("UserOrm", back_populates="role")
 
 
-class PermissionOrm(BaseModelOrm):
-    __tablename__ = 'permissions'
+class ResourceOrm(BaseModelOrm):
+    __tablename__ = 'resources'
 
     id = Column(Integer, primary_key=True, index=True, autoincrement="auto")
-    code = Column(String(50), unique=True, nullable=False)
-    name = Column(String(100))
+    name = Column(String(50), unique=True, nullable=False)
+    description = Column(String(255))
 
-    roles = relationship("RolePermission", back_populates="permission")
-    direct_users = relationship("UserPermission", back_populates="permission")
-
-
-class UserRole(BaseModelOrm):
-    __tablename__ = 'user_roles'
-
-    user_id = Column(String(36), ForeignKey('users.id'), primary_key=True)
-    role_id = Column(Integer, ForeignKey('roles.id'), primary_key=True)
-
-    user = relationship("UserOrm", back_populates="roles")
-    role = relationship("RoleOrm", back_populates="users")
-
-    __table_args__ = (UniqueConstraint('user_id', 'role_id'),)
-
-
-class RolePermission(BaseModelOrm):
-    __tablename__ = 'role_permissions'
-
-    role_id = Column(Integer, ForeignKey('roles.id'), primary_key=True)
-    perm_id = Column(Integer, ForeignKey('permissions.id'), primary_key=True)
-
-    role = relationship("RoleOrm", back_populates="permissions")
-    permission = relationship("PermissionOrm", back_populates="roles")
-
-    __table_args__ = (UniqueConstraint('role_id', 'perm_id'),)
+    permissions = relationship("UserPermission", back_populates="resource")
 
 
 class UserPermission(BaseModelOrm):
     __tablename__ = 'user_permissions'
 
     user_id = Column(String(36), ForeignKey('users.id'), primary_key=True)
-    perm_id = Column(Integer, ForeignKey('permissions.id'), primary_key=True)
+    resource_id = Column(Integer, ForeignKey('resources.id'), primary_key=True)
+
+    read_permission = Column(Boolean, default=False)
+    read_all_permission = Column(Boolean, default=False)
+    create_permission = Column(Boolean, default=False)
+    update_permission = Column(Boolean, default=False)
+    update_all_permission = Column(Boolean, default=False)
+    delete_permission = Column(Boolean, default=False)
+    delete_all_permission = Column(Boolean, default=False)
 
     user = relationship("UserOrm", back_populates="direct_permissions")
-    permission = relationship("PermissionOrm", back_populates="direct_users")
+    resource = relationship("ResourceOrm", back_populates="permissions")
 
-    __table_args__ = (UniqueConstraint('user_id', 'perm_id'),)
+    __table_args__ = (UniqueConstraint('user_id', 'resource_id'),)
 
 
 class SessionRecordOrm(BaseModelOrm):

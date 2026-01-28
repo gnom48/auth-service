@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 import logging
 from typing import AsyncGenerator
 from fastapi import FastAPI
-from app.rest.routers import users_router, roles_router, healthcheck_router, permissions_router, auth_router
+from app.rest.routers import users_router, roles_router, healthcheck_router, permissions_router, resources_router, auth_router
 from .middleware import error_middleware
 from app.di import di_container
 
@@ -80,6 +80,10 @@ asgi_application = FastAPI(
             "name": "Healthcheck",
             "description": "Служебные методы."
         },
+        {
+            "name": "Resources",
+            "description": "Методы управления ресурсами, на которые распространяются разрешения."
+        },
     ],
     servers=[
         {
@@ -101,3 +105,4 @@ asgi_application.include_router(permissions_router)
 asgi_application.include_router(roles_router)
 asgi_application.include_router(healthcheck_router)
 asgi_application.include_router(auth_router)
+asgi_application.include_router(resources_router)

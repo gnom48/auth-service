@@ -20,7 +20,7 @@ async def create_resource(
     return await service.create_resource(resource)
 
 
-@resources_router.delete("/", summary="Удаление ресурса", response_model=ResourcePydantic)
+@resources_router.delete("/", summary="Удаление ресурса")
 async def delete_resource(
     resource_id: int,
     user: User = Depends(verify_jwt),
@@ -44,15 +44,15 @@ async def create_permission(
     return await service.create_permission(permission)
 
 
-@permissions_router.get("/{permission_id}/user/{target_user_id}", summary="Получение информации о разрешении")
+@permissions_router.get("/", summary="Получение информации о разрешении")
 async def get_permission(
-    permission_id: int,
+    resource_id: int,
     target_user_id: str,
     user: User = Depends(verify_jwt),
     service: PermissionService = Depends(
         lambda: di_container.permission_service())
 ):
-    permission = await service.get_permission_by_id(permission_id)
+    permission = await service.get_permission_by_ids(target_user_id, resource_id)
     if not permission:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND,
                             detail="Разрешение не найдено")
@@ -73,7 +73,7 @@ async def update_permission(
     return permission
 
 
-@permissions_router.delete("/{permission_id}", summary="Удаление разрешения")
+@permissions_router.delete("/", summary="Удаление разрешения")
 async def delete_permission(
     target_user_id: str,
     permission_id: int,

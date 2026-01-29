@@ -1,6 +1,6 @@
-from typing import Optional, List
+from typing import Any, Optional, List
 from datetime import datetime
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic import BaseModel, Field, EmailStr, ConfigDict, field_validator
 
 
 class PydanticBase(BaseModel):
@@ -60,8 +60,38 @@ class User(PydanticBase):
     last_name: str
     middle_name: Optional[str]
     email: EmailStr
-    role: RolePydantic
+    role: RolePydantic | None
     permissions: List[UserPermissionPydantic]
+
+    @classmethod
+    def model_validate_orm(cls, orm_object: object):
+        """
+        Метод валидирует ORM объект и преобразует его в Pydaintc-модель.
+
+        Проверяется наличие полей 'role' и 'direct_permissions', если поля существуют —
+        выполняется дополнительная обработка.
+        """
+        role = None
+        permissions = []
+
+        if hasattr(orm_object, 'role') and orm_object.role is not None:
+            role = RolePydantic.model_validate(orm_object.role)
+
+        if hasattr(orm_object, 'direct_permissions'):
+            permissions = [
+                UserPermissionPydantic.model_validate(p)
+                for p in orm_object.direct_permissions
+            ]
+
+        return cls(
+            id=orm_object.id,
+            first_name=orm_object.first_name,
+            last_name=orm_object.last_name,
+            middle_name=orm_object.middle_name,
+            email=orm_object.email,
+            role=role,
+            permissions=permissions
+        )
 
 
 class UserCreate(PydanticBase):

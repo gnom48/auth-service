@@ -34,8 +34,9 @@ class UserOrm(BaseModelOrm):
     hashed_password = Column(String(100))
     role_id = Column(Integer, ForeignKey('roles.id'))
 
-    role = relationship("RoleOrm", back_populates="users")
-    direct_permissions = relationship("UserPermission", back_populates="user")
+    role = relationship("RoleOrm", back_populates="users", lazy="selectin")
+    direct_permissions = relationship(
+        "UserPermissionOrm", back_populates="user", lazy="selectin")
 
 
 class RoleOrm(BaseModelOrm):
@@ -45,7 +46,7 @@ class RoleOrm(BaseModelOrm):
     title = Column(String(50), unique=True, nullable=False)
     description = Column(String(255))
 
-    users = relationship("UserOrm", back_populates="role")
+    users = relationship("UserOrm", back_populates="role", lazy="selectin")
 
 
 class ResourceOrm(BaseModelOrm):
@@ -55,10 +56,10 @@ class ResourceOrm(BaseModelOrm):
     name = Column(String(50), unique=True, nullable=False)
     description = Column(String(255))
 
-    permissions = relationship("UserPermission", back_populates="resource")
+    permissions = relationship("UserPermissionOrm", back_populates="resource")
 
 
-class UserPermission(BaseModelOrm):
+class UserPermissionOrm(BaseModelOrm):
     __tablename__ = 'user_permissions'
 
     user_id = Column(String(36), ForeignKey('users.id'), primary_key=True)
@@ -72,8 +73,10 @@ class UserPermission(BaseModelOrm):
     delete_permission = Column(Boolean, default=False)
     delete_all_permission = Column(Boolean, default=False)
 
-    user = relationship("UserOrm", back_populates="direct_permissions")
-    resource = relationship("ResourceOrm", back_populates="permissions")
+    user = relationship(
+        "UserOrm", back_populates="direct_permissions", lazy="selectin")
+    resource = relationship(
+        "ResourceOrm", back_populates="permissions", lazy="selectin")
 
     __table_args__ = (UniqueConstraint('user_id', 'resource_id'),)
 
@@ -86,4 +89,4 @@ class SessionRecordOrm(BaseModelOrm):
     refresh_token = Column(String, unique=True, index=True)
     expires_at = Column(Integer)
 
-    user = relationship("UserOrm", backref="sessions")
+    user = relationship("UserOrm", backref="sessions", lazy="selectin")

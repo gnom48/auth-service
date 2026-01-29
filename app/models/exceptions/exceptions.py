@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_403_FORBIDDEN
+from starlette.status import *
 
 
 class PermissionDeniedException(HTTPException):
@@ -10,3 +10,8 @@ class PermissionDeniedException(HTTPException):
 class AuthException(HTTPException):
     def __init__(self, detail="Unauthorized", headers=None):
         super().__init__(HTTP_401_UNAUTHORIZED, detail, headers)
+
+
+class NotFoundException(HTTPException):
+    def __init__(self, detail="Not found resource", headers=None):
+        super().__init__(HTTP_404_NOT_FOUND, detail, headers)

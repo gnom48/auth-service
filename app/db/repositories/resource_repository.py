@@ -8,39 +8,34 @@ class ResourceRepository(BaseRepository[ResourceOrm]):
     model_class = ResourceOrm
 
     async def create(self, obj_in: dict) -> Optional[ResourceOrm]:
-        async with self as repo:
-            resource = ResourceOrm(**obj_in)
-            self._session.add(resource)
+        resource = ResourceOrm(**obj_in)
+        self._session.add(resource)
+        await self._session.commit()
+        await self._session.refresh(resource)
+        return resource
+
+    async def read_by_id(self, entity_id: int) -> Optional[ResourceOrm]:
+        result = await self._session.execute(select(ResourceOrm).where(ResourceOrm.id == entity_id))
+        return result.scalar_one_or_none()
+
+    async def read_all(self) -> List[ResourceOrm]:
+        result = await self._session.execute(select(ResourceOrm))
+        return result.scalars().all()
+
+    async def update(self, entity_id: int, updated_obj: dict) -> Optional[ResourceOrm]:
+        resource = await self.read_by_id(entity_id)
+        if resource:
+            for key, value in updated_obj.items():
+                setattr(resource, key, value)
             await self._session.commit()
             await self._session.refresh(resource)
             return resource
-
-    async def read_by_id(self, entity_id: int) -> Optional[ResourceOrm]:
-        async with self as repo:
-            result = await self._session.execute(select(ResourceOrm).where(ResourceOrm.id == entity_id))
-            return result.scalar_one_or_none()
-
-    async def read_all(self) -> List[ResourceOrm]:
-        async with self as repo:
-            result = await self._session.execute(select(ResourceOrm))
-            return result.scalars().all()
-
-    async def update(self, entity_id: int, updated_obj: dict) -> Optional[ResourceOrm]:
-        async with self as repo:
-            resource = await self.read_by_id(entity_id)
-            if resource:
-                for key, value in updated_obj.items():
-                    setattr(resource, key, value)
-                await self._session.commit()
-                await self._session.refresh(resource)
-                return resource
-            return None
+        return None
 
     async def delete(self, entity_id: int) -> bool:
-        async with self as repo:
-            resource = await self.read_by_id(entity_id)
-            if resource:
-                await self._session.delete(resource)
-                await self._session.commit()
-                return True
-            return False
+        resource = await self.read_by_id(entity_id)
+        if resource:
+            await self._session.delete(resource)
+            await self._session.commit()
+            return True
+        return False

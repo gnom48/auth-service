@@ -8,10 +8,19 @@ class RoleService:
         self.repo = role_repo
 
     async def create_role(self, role_in: RoleCreate) -> Optional[RolePydantic]:
-        return RolePydantic(await self.repo.create(role_in.dict()))
+        async with self.repo as r:
+            if (role := await r.create(role_in.dict())):
+                return RolePydantic.model_validate(role)
+            else:
+                return None
 
     async def get_role_by_id(self, role_id: int) -> Optional[RolePydantic]:
-        return RolePydantic.model_validate(await self.repo.read_by_id(role_id))
+        async with self.repo as r:
+            if (role := await r.read_by_id(role_id)):
+                return RolePydantic.model_validate(role)
+            else:
+                return None
 
     async def delete_role(self, role_id: int) -> bool:
-        return await self.repo.delete(role_id)
+        async with self.repo as r:
+            return await r.delete(role_id)

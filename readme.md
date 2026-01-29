@@ -114,5 +114,3 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 ### Планы:
 TODO: добавить сервис, который раз в сутки будет удалять все истекшие сессии, оставшиеся в базе
 TODO: залить на auth.gnom48.ru
-TODO: в permissions добавить типы прав read_permission, read_all_permission, create_permission, update_permission, update_all_permission, delete_permission, delete_all_permission
-TODO: GET /user/{user_id}/ должен отдавать еще и роль и все права

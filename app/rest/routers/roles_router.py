@@ -2,13 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.di import di_container
 from app.rest.middleware import verify_jwt
 from app.services.role_service import RoleService
-from app.models.pydantic import RoleCreate, User
+from app.models.pydantic import RoleCreate, RolePydantic, User
 from ..middleware import verify_jwt
 
 roles_router = APIRouter(prefix="/roles", tags=["Roles"])
 
 
-@roles_router.post("/", summary="Создание новой роли")
+@roles_router.post("/", summary="Создание новой роли", response_model=RolePydantic)
 async def create_role(
     role: RoleCreate,
     user: User = Depends(verify_jwt),
@@ -17,7 +17,7 @@ async def create_role(
     return await service.create_role(role)
 
 
-@roles_router.get("/{role_id}", summary="Получение информации о роли")
+@roles_router.get("/{role_id}", summary="Получение информации о роли", response_model=RolePydantic)
 async def get_role(
     role_id: int,
     user: User = Depends(verify_jwt),

@@ -18,7 +18,7 @@ class BaseModelOrm(DeclarativeBase):
         time.time()), onupdate=lambda: int(time.time()))
 
     def complete_user_fields(self, user: User):
-        self.when_create = user.id
+        self.who_create = user.id
         self.when_update = user.id
 
 

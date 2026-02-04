@@ -1,6 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.di import di_container
-from app.rest.middleware import verify_jwt
 from app.services.role_service import RoleService
 from app.models.pydantic import RoleCreate, RolePydantic, User
 from ..middleware import verify_jwt

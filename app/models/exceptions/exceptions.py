@@ -15,3 +15,8 @@ class AuthException(HTTPException):
 class NotFoundException(HTTPException):
     def __init__(self, detail="Not found resource", headers=None):
         super().__init__(HTTP_404_NOT_FOUND, detail, headers)
+
+
+class InvalidDataException(HTTPException):
+    def __init__(self, detail="Data in model is invalid", headers=None):
+        super().__init__(HTTP_400_BAD_REQUEST, detail, headers)

@@ -1,6 +1,6 @@
 from typing import Optional
 from app.db import UserRepository
-from app.models.exceptions import AuthException
+from app.models.exceptions import AuthException, InvalidDataException
 from app.models.pydantic import UserCreate, UserUpdate, User, RolePydantic, UserPermissionPydantic
 from .utils.bcrypt_methods import get_password_hash, verify_password
 
@@ -11,6 +11,9 @@ class UserService:
 
     async def create_user(self, user_in: UserCreate) -> Optional[User]:
         async with self.repo as r:
+            if user_in.confirm_password != user_in.password:
+                raise InvalidDataException(
+                    detail="Confirmed password and password not matched")
             hashed_password = get_password_hash(user_in.password)
             user_dict = user_in.dict()
             user_dict["hashed_password"] = hashed_password
@@ -54,7 +57,7 @@ class UserService:
 
     async def update_user(self, user_id: int, user_update: UserUpdate) -> Optional[UserUpdate]:
         async with self.repo as r:
-            if (user := await r.update(user_id, user_update.dict())):
+            if (user := await r.update(user_id, user_update.model_dump(exclude_none=True))):
                 return User.model_validate_orm(user)
             else:
                 return None

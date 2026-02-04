@@ -18,11 +18,11 @@ async def register_user(
 
 @users_router.get("/{user_id}", summary="Получение информации о пользователе")
 async def get_user(
-    target_user_id: str,
+    user_id: str,
     user: User = Depends(verify_jwt),
     service: UserService = Depends(lambda: di_container.user_service())
 ):
-    target_user = await service.get_user_by_id(target_user_id)
+    target_user = await service.get_user_by_id(user_id)
     if not target_user:
         raise HTTPException(status_code=404, detail="Пользователь не найден")
     return target_user

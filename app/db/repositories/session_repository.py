@@ -1,5 +1,6 @@
+from datetime import datetime
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import select, delete
 from .base_repo import BaseRepository
 from app.models.sqlalchemy import SessionRecordOrm
 
@@ -15,7 +16,8 @@ class SessionRepository(BaseRepository[SessionRecordOrm]):
         return session_record
 
     async def get_session_by_refresh_token(self, refresh_token: str) -> Optional[SessionRecordOrm]:
-        result = await self._session.execute(select(SessionRecordOrm).where(SessionRecordOrm.refresh_token == refresh_token))
+        result = await self._session.execute(
+            select(SessionRecordOrm).where(SessionRecordOrm.refresh_token == refresh_token))
         return result.scalar_one_or_none()
 
     async def invalidate_session(self, refresh_token: str) -> bool:
@@ -27,5 +29,11 @@ class SessionRepository(BaseRepository[SessionRecordOrm]):
         return False
 
     async def get_sessions_by_user_id(self, user_id: int) -> List[SessionRecordOrm]:
-        result = await self._session.execute(select(SessionRecordOrm).where(SessionRecordOrm.user_id == user_id))
+        result = await self._session.execute(
+            select(SessionRecordOrm).where(SessionRecordOrm.user_id == user_id))
         return result.scalars().all()
+
+    async def delete_expired(self) -> int:
+        result = await self._session.execute(
+            delete(SessionRecordOrm).where(SessionRecordOrm.expires_at <= datetime.utcnow()).returning(SessionRecordOrm.id))
+        return len(result.fetchall())
